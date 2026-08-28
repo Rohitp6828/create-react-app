@@ -1,0 +1,4583 @@
+codata_version: '1'
+workspace:
+  id: 6a8fe71448d0ed24dea19acd
+  name: Civil Construction Procurement
+  purpose: A backend purchase management system for civil construction projects that handles vendors, requisitions, orders, receipts, and invoices through a structured workflow, with public catalog access and owner-only administrative controls.
+  description: A backend purchase management system for civil construction projects that handles vendors, requisitions, orders, receipts, and invoices through a structured workflow, with public catalog access and owner-only administrative controls.
+  branch: main
+  version: 1
+  status: active
+  generatedAt: '2026-08-28T14:56:19.254Z'
+runtime:
+  baseUrl: https://api.codata.io
+  envelope: codata-v1
+  rules:
+    idGeneration: auto-uuid
+    timestampFormat: iso-8601
+    readOnlyFields:
+      - createdAt
+      - updatedAt
+      - deletedAt
+    putSemantics: partial-omit-null
+    arrayJsonReadShape: may-be-stringified
+assets:
+  - name: Users
+    description: Managed platform accounts (email/password sign-in).
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: User id.
+      - name: providers
+        type: JSON
+        required: true
+        readOnly: false
+        primaryKey: false
+        description: Linked sign-in providers for this user.
+      - name: lastSignInAt
+        type: TIMESTAMP
+        required: false
+        readOnly: false
+        primaryKey: false
+        description: Last successful sign-in across any provider.
+      - name: email
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+        description: account-linking key across providers.
+      - name: lastPasswordResetAt
+        type: TIMESTAMP
+        required: false
+        readOnly: false
+        primaryKey: false
+        description: Last password-reset.
+      - name: createdAt
+        type: TIMESTAMP
+        required: true
+        readOnly: true
+        primaryKey: false
+        description: Account creation timestamp.
+    category: AUTH_SERVICE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: Vendor
+    description: Approved supplier or subcontractor in the procurement register
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: name
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: contactPerson
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: email
+        type: EMAIL
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: phone
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: address
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: category
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Materials
+          - Equipment
+          - Subcontractor
+          - Services
+      - name: status
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Active
+          - Inactive
+          - Blacklisted
+      - name: taxId
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: paymentTerms
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Net 15
+          - Net 30
+          - Net 60
+          - Immediate
+      - name: rating
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: CostCode
+    description: Budget cost codes for civil construction work packages
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: code
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: description
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: category
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Earthworks
+          - Concrete
+          - Steel
+          - Electrical
+          - Plumbing
+          - Finishing
+          - Equipment
+          - General
+      - name: budgetAmount
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: isActive
+        type: BOOLEAN
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: PurchaseRequisition
+    description: Internal request to procure materials or services for a project
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: prNumber
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: title
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: projectName
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: requestedBy
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: requestDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: requiredDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: status
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Draft
+          - Pending Approval
+          - Approved
+          - Rejected
+          - Converted to PO
+      - name: priority
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Low
+          - Medium
+          - High
+          - Urgent
+      - name: justification
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: estimatedValue
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: costCodeId
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: lineItems
+        type: JSON
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: approvedBy
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: approvalDate
+        type: DATE
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: rejectionReason
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: PurchaseOrder
+    description: Formal order issued to a vendor following an approved requisition
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: poNumber
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: title
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: vendorId
+        type: UUID
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: requisitionId
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: projectName
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: issueDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: deliveryDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: deliveryAddress
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: status
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Draft
+          - Issued
+          - Partially Received
+          - Fully Received
+          - Closed
+          - Cancelled
+      - name: lineItems
+        type: JSON
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: subtotal
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: taxAmount
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: totalAmount
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: paymentTerms
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Net 15
+          - Net 30
+          - Net 60
+          - Immediate
+      - name: notes
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: costCodeId
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: GoodsReceipt
+    description: Record of materials or services received against a purchase order
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: grnNumber
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: purchaseOrderId
+        type: UUID
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: receivedDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: receivedBy
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: deliveryNote
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: status
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Pending Inspection
+          - Accepted
+          - Partially Accepted
+          - Rejected
+      - name: lineItems
+        type: JSON
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: inspectionNotes
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: inspectedBy
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+  - name: Invoice
+    description: Vendor invoice matched against a purchase order for payment processing
+    primaryKey: id
+    fields:
+      - name: id
+        type: UUID
+        required: false
+        readOnly: false
+        primaryKey: true
+        description: Primary key
+      - name: invoiceNumber
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: vendorId
+        type: UUID
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: purchaseOrderId
+        type: UUID
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: invoiceDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: dueDate
+        type: DATE
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: subtotal
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: taxAmount
+        type: DECIMAL
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: totalAmount
+        type: DECIMAL
+        required: true
+        readOnly: false
+        primaryKey: false
+      - name: status
+        type: STRING
+        required: true
+        readOnly: false
+        primaryKey: false
+        enum:
+          - Received
+          - Under Review
+          - Approved
+          - Rejected
+          - Paid
+      - name: paymentDate
+        type: DATE
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: paymentReference
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: notes
+        type: TEXT
+        required: false
+        readOnly: false
+        primaryKey: false
+      - name: approvedBy
+        type: STRING
+        required: false
+        readOnly: false
+        primaryKey: false
+    category: TABLE
+    persistence:
+      sourceOfTruth: true
+      derivedFrom: null
+      partitionStrategy: null
+      rationale: null
+endpoints:
+  - method: GET
+    path: /vendors
+    operationId: listVendors
+    summary: List vendors
+    description: Returns a paginated list of vendors.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: name
+        in: query
+        required: false
+        description: Filter by name (exact match)
+        schema:
+          type: string
+      - name: contactPerson
+        in: query
+        required: false
+        description: Filter by contactPerson (exact match)
+        schema:
+          type: string
+      - name: email
+        in: query
+        required: false
+        description: Filter by email (exact match)
+        schema:
+          type: string
+      - name: phone
+        in: query
+        required: false
+        description: Filter by phone (exact match)
+        schema:
+          type: string
+      - name: address
+        in: query
+        required: false
+        description: Filter by address (exact match)
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter by category (exact match)
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (exact match)
+        schema:
+          type: string
+      - name: taxId
+        in: query
+        required: false
+        description: Filter by taxId (exact match)
+        schema:
+          type: string
+      - name: paymentTerms
+        in: query
+        required: false
+        description: Filter by paymentTerms (exact match)
+        schema:
+          type: string
+      - name: rating
+        in: query
+        required: false
+        description: Filter by rating (exact match)
+        schema:
+          type: number
+      - name: rating_gte
+        in: query
+        required: false
+        description: Filter rating greater than or equal to the given value
+        schema:
+          type: number
+      - name: rating_lte
+        in: query
+        required: false
+        description: Filter rating less than or equal to the given value
+        schema:
+          type: number
+    responses:
+      '200':
+        description: Paginated list of vendors.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of vendors.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /vendors/{id}
+    operationId: getVendor
+    summary: Get Vendor by id
+    description: Returns a single Vendor by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Vendor.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Vendor found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: Vendor not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /vendors
+    operationId: createVendor
+    summary: Create Vendor
+    description: Creates a new Vendor.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              contactPerson:
+                type: string
+              email:
+                type: string
+                format: email
+              phone:
+                type: string
+                nullable: true
+              address:
+                type: string
+                nullable: true
+              category:
+                type: string
+                enum:
+                  - Materials
+                  - Equipment
+                  - Subcontractor
+                  - Services
+              status:
+                type: string
+                enum:
+                  - Active
+                  - Inactive
+                  - Blacklisted
+              taxId:
+                type: string
+                nullable: true
+              paymentTerms:
+                type: string
+                enum:
+                  - Net 15
+                  - Net 30
+                  - Net 60
+                  - Immediate
+                nullable: true
+              rating:
+                type: number
+                nullable: true
+            required:
+              - name
+              - contactPerson
+              - email
+              - category
+              - status
+    responses:
+      '201':
+        description: Vendor created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /vendors/{id}
+    operationId: updateVendor
+    summary: Update Vendor
+    description: Replaces an existing Vendor. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Vendor.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              contactPerson:
+                type: string
+              email:
+                type: string
+                format: email
+              phone:
+                type: string
+                nullable: true
+              address:
+                type: string
+                nullable: true
+              category:
+                type: string
+                enum:
+                  - Materials
+                  - Equipment
+                  - Subcontractor
+                  - Services
+              status:
+                type: string
+                enum:
+                  - Active
+                  - Inactive
+                  - Blacklisted
+              taxId:
+                type: string
+                nullable: true
+              paymentTerms:
+                type: string
+                enum:
+                  - Net 15
+                  - Net 30
+                  - Net 60
+                  - Immediate
+                nullable: true
+              rating:
+                type: number
+                nullable: true
+    responses:
+      '200':
+        description: Vendor updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: Vendor not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /vendors/{id}
+    operationId: deleteVendor
+    summary: Delete Vendor
+    description: Deletes a Vendor by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Vendor.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Vendor deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: Vendor not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /costCodes
+    operationId: listCostcodes
+    summary: List costCodes
+    description: Returns a paginated list of costCodes.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: code
+        in: query
+        required: false
+        description: Filter by code (exact match)
+        schema:
+          type: string
+      - name: description
+        in: query
+        required: false
+        description: Filter by description (exact match)
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter by category (exact match)
+        schema:
+          type: string
+      - name: budgetAmount
+        in: query
+        required: false
+        description: Filter by budgetAmount (exact match)
+        schema:
+          type: number
+      - name: budgetAmount_gte
+        in: query
+        required: false
+        description: Filter budgetAmount greater than or equal to the given value
+        schema:
+          type: number
+      - name: budgetAmount_lte
+        in: query
+        required: false
+        description: Filter budgetAmount less than or equal to the given value
+        schema:
+          type: number
+      - name: isActive
+        in: query
+        required: false
+        description: Filter by isActive (exact match)
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Paginated list of costCodes.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of costCodes.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /costCodes/{id}
+    operationId: getCostcode
+    summary: Get CostCode by id
+    description: Returns a single CostCode by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the CostCode.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: CostCode found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: CostCode not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /costCodes
+    operationId: createCostcode
+    summary: Create CostCode
+    description: Creates a new CostCode.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              code:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+                enum:
+                  - Earthworks
+                  - Concrete
+                  - Steel
+                  - Electrical
+                  - Plumbing
+                  - Finishing
+                  - Equipment
+                  - General
+              budgetAmount:
+                type: number
+                nullable: true
+              isActive:
+                type: boolean
+                nullable: true
+            required:
+              - code
+              - description
+              - category
+    responses:
+      '201':
+        description: CostCode created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /costCodes/{id}
+    operationId: updateCostcode
+    summary: Update CostCode
+    description: Replaces an existing CostCode. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the CostCode.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+                enum:
+                  - Earthworks
+                  - Concrete
+                  - Steel
+                  - Electrical
+                  - Plumbing
+                  - Finishing
+                  - Equipment
+                  - General
+              budgetAmount:
+                type: number
+                nullable: true
+              isActive:
+                type: boolean
+                nullable: true
+    responses:
+      '200':
+        description: CostCode updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: CostCode not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /costCodes/{id}
+    operationId: deleteCostcode
+    summary: Delete CostCode
+    description: Deletes a CostCode by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the CostCode.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: CostCode deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: CostCode not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /purchaseRequisitions
+    operationId: listPurchaserequisitions
+    summary: List purchaseRequisitions
+    description: Returns a paginated list of purchaseRequisitions.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: costCodeId
+        in: query
+        required: false
+        description: Filter by CostCode — returns only records whose costCodeId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: prNumber
+        in: query
+        required: false
+        description: Filter by prNumber (exact match)
+        schema:
+          type: string
+      - name: title
+        in: query
+        required: false
+        description: Filter by title (exact match)
+        schema:
+          type: string
+      - name: projectName
+        in: query
+        required: false
+        description: Filter by projectName (exact match)
+        schema:
+          type: string
+      - name: requestedBy
+        in: query
+        required: false
+        description: Filter by requestedBy (exact match)
+        schema:
+          type: string
+      - name: requestDate
+        in: query
+        required: false
+        description: Filter by requestDate (exact match)
+        schema:
+          type: string
+      - name: requestDate_after
+        in: query
+        required: false
+        description: Filter requestDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: requestDate_before
+        in: query
+        required: false
+        description: Filter requestDate less than or equal to the given value
+        schema:
+          type: string
+      - name: requiredDate
+        in: query
+        required: false
+        description: Filter by requiredDate (exact match)
+        schema:
+          type: string
+      - name: requiredDate_after
+        in: query
+        required: false
+        description: Filter requiredDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: requiredDate_before
+        in: query
+        required: false
+        description: Filter requiredDate less than or equal to the given value
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (exact match)
+        schema:
+          type: string
+      - name: priority
+        in: query
+        required: false
+        description: Filter by priority (exact match)
+        schema:
+          type: string
+      - name: justification
+        in: query
+        required: false
+        description: Filter by justification (exact match)
+        schema:
+          type: string
+      - name: estimatedValue
+        in: query
+        required: false
+        description: Filter by estimatedValue (exact match)
+        schema:
+          type: number
+      - name: estimatedValue_gte
+        in: query
+        required: false
+        description: Filter estimatedValue greater than or equal to the given value
+        schema:
+          type: number
+      - name: estimatedValue_lte
+        in: query
+        required: false
+        description: Filter estimatedValue less than or equal to the given value
+        schema:
+          type: number
+      - name: approvedBy
+        in: query
+        required: false
+        description: Filter by approvedBy (exact match)
+        schema:
+          type: string
+      - name: approvalDate
+        in: query
+        required: false
+        description: Filter by approvalDate (exact match)
+        schema:
+          type: string
+      - name: approvalDate_after
+        in: query
+        required: false
+        description: Filter approvalDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: approvalDate_before
+        in: query
+        required: false
+        description: Filter approvalDate less than or equal to the given value
+        schema:
+          type: string
+      - name: rejectionReason
+        in: query
+        required: false
+        description: Filter by rejectionReason (exact match)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Paginated list of purchaseRequisitions.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of purchaseRequisitions.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /purchaseRequisitions/{id}
+    operationId: getPurchaserequisition
+    summary: Get PurchaseRequisition by id
+    description: Returns a single PurchaseRequisition by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseRequisition.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: PurchaseRequisition found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: PurchaseRequisition not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /purchaseRequisitions
+    operationId: createPurchaserequisition
+    summary: Create PurchaseRequisition
+    description: Creates a new PurchaseRequisition.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              prNumber:
+                type: string
+              title:
+                type: string
+              projectName:
+                type: string
+              requestedBy:
+                type: string
+              requestDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              requiredDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              status:
+                type: string
+                enum:
+                  - Draft
+                  - Pending Approval
+                  - Approved
+                  - Rejected
+                  - Converted to PO
+              priority:
+                type: string
+                enum:
+                  - Low
+                  - Medium
+                  - High
+                  - Urgent
+                nullable: true
+              justification:
+                type: string
+                nullable: true
+              estimatedValue:
+                type: number
+                nullable: true
+              costCodeId:
+                type: string
+                format: uuid
+                nullable: true
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              approvedBy:
+                type: string
+                nullable: true
+              approvalDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+                nullable: true
+              rejectionReason:
+                type: string
+                nullable: true
+            required:
+              - prNumber
+              - title
+              - projectName
+              - requestedBy
+              - requestDate
+              - requiredDate
+              - status
+    responses:
+      '201':
+        description: PurchaseRequisition created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /purchaseRequisitions/{id}
+    operationId: updatePurchaserequisition
+    summary: Update PurchaseRequisition
+    description: Replaces an existing PurchaseRequisition. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseRequisition.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              prNumber:
+                type: string
+              title:
+                type: string
+              projectName:
+                type: string
+              requestedBy:
+                type: string
+              requestDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              requiredDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              status:
+                type: string
+                enum:
+                  - Draft
+                  - Pending Approval
+                  - Approved
+                  - Rejected
+                  - Converted to PO
+              priority:
+                type: string
+                enum:
+                  - Low
+                  - Medium
+                  - High
+                  - Urgent
+                nullable: true
+              justification:
+                type: string
+                nullable: true
+              estimatedValue:
+                type: number
+                nullable: true
+              costCodeId:
+                type: string
+                format: uuid
+                nullable: true
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              approvedBy:
+                type: string
+                nullable: true
+              approvalDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+                nullable: true
+              rejectionReason:
+                type: string
+                nullable: true
+    responses:
+      '200':
+        description: PurchaseRequisition updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: PurchaseRequisition not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /purchaseRequisitions/{id}
+    operationId: deletePurchaserequisition
+    summary: Delete PurchaseRequisition
+    description: Deletes a PurchaseRequisition by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseRequisition.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: PurchaseRequisition deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: PurchaseRequisition not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /purchaseOrders
+    operationId: listPurchaseorders
+    summary: List purchaseOrders
+    description: Returns a paginated list of purchaseOrders.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: vendorId
+        in: query
+        required: false
+        description: Filter by Vendor — returns only records whose vendorId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: requisitionId
+        in: query
+        required: false
+        description: Filter by PurchaseRequisition — returns only records whose requisitionId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: costCodeId
+        in: query
+        required: false
+        description: Filter by CostCode — returns only records whose costCodeId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: poNumber
+        in: query
+        required: false
+        description: Filter by poNumber (exact match)
+        schema:
+          type: string
+      - name: title
+        in: query
+        required: false
+        description: Filter by title (exact match)
+        schema:
+          type: string
+      - name: projectName
+        in: query
+        required: false
+        description: Filter by projectName (exact match)
+        schema:
+          type: string
+      - name: issueDate
+        in: query
+        required: false
+        description: Filter by issueDate (exact match)
+        schema:
+          type: string
+      - name: issueDate_after
+        in: query
+        required: false
+        description: Filter issueDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: issueDate_before
+        in: query
+        required: false
+        description: Filter issueDate less than or equal to the given value
+        schema:
+          type: string
+      - name: deliveryDate
+        in: query
+        required: false
+        description: Filter by deliveryDate (exact match)
+        schema:
+          type: string
+      - name: deliveryDate_after
+        in: query
+        required: false
+        description: Filter deliveryDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: deliveryDate_before
+        in: query
+        required: false
+        description: Filter deliveryDate less than or equal to the given value
+        schema:
+          type: string
+      - name: deliveryAddress
+        in: query
+        required: false
+        description: Filter by deliveryAddress (exact match)
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (exact match)
+        schema:
+          type: string
+      - name: subtotal
+        in: query
+        required: false
+        description: Filter by subtotal (exact match)
+        schema:
+          type: number
+      - name: subtotal_gte
+        in: query
+        required: false
+        description: Filter subtotal greater than or equal to the given value
+        schema:
+          type: number
+      - name: subtotal_lte
+        in: query
+        required: false
+        description: Filter subtotal less than or equal to the given value
+        schema:
+          type: number
+      - name: taxAmount
+        in: query
+        required: false
+        description: Filter by taxAmount (exact match)
+        schema:
+          type: number
+      - name: taxAmount_gte
+        in: query
+        required: false
+        description: Filter taxAmount greater than or equal to the given value
+        schema:
+          type: number
+      - name: taxAmount_lte
+        in: query
+        required: false
+        description: Filter taxAmount less than or equal to the given value
+        schema:
+          type: number
+      - name: totalAmount
+        in: query
+        required: false
+        description: Filter by totalAmount (exact match)
+        schema:
+          type: number
+      - name: totalAmount_gte
+        in: query
+        required: false
+        description: Filter totalAmount greater than or equal to the given value
+        schema:
+          type: number
+      - name: totalAmount_lte
+        in: query
+        required: false
+        description: Filter totalAmount less than or equal to the given value
+        schema:
+          type: number
+      - name: paymentTerms
+        in: query
+        required: false
+        description: Filter by paymentTerms (exact match)
+        schema:
+          type: string
+      - name: notes
+        in: query
+        required: false
+        description: Filter by notes (exact match)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Paginated list of purchaseOrders.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of purchaseOrders.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /purchaseOrders/{id}
+    operationId: getPurchaseorder
+    summary: Get PurchaseOrder by id
+    description: Returns a single PurchaseOrder by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseOrder.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: PurchaseOrder found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: PurchaseOrder not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /purchaseOrders
+    operationId: createPurchaseorder
+    summary: Create PurchaseOrder
+    description: Creates a new PurchaseOrder.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              poNumber:
+                type: string
+              title:
+                type: string
+              vendorId:
+                type: string
+                format: uuid
+              requisitionId:
+                type: string
+                format: uuid
+                nullable: true
+              projectName:
+                type: string
+              issueDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              deliveryDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              deliveryAddress:
+                type: string
+                nullable: true
+              status:
+                type: string
+                enum:
+                  - Draft
+                  - Issued
+                  - Partially Received
+                  - Fully Received
+                  - Closed
+                  - Cancelled
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              subtotal:
+                type: number
+                nullable: true
+              taxAmount:
+                type: number
+                nullable: true
+              totalAmount:
+                type: number
+                nullable: true
+              paymentTerms:
+                type: string
+                enum:
+                  - Net 15
+                  - Net 30
+                  - Net 60
+                  - Immediate
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+              costCodeId:
+                type: string
+                format: uuid
+                nullable: true
+            required:
+              - poNumber
+              - title
+              - vendorId
+              - projectName
+              - issueDate
+              - deliveryDate
+              - status
+    responses:
+      '201':
+        description: PurchaseOrder created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /purchaseOrders/{id}
+    operationId: updatePurchaseorder
+    summary: Update PurchaseOrder
+    description: Replaces an existing PurchaseOrder. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseOrder.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              poNumber:
+                type: string
+              title:
+                type: string
+              vendorId:
+                type: string
+                format: uuid
+              requisitionId:
+                type: string
+                format: uuid
+                nullable: true
+              projectName:
+                type: string
+              issueDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              deliveryDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              deliveryAddress:
+                type: string
+                nullable: true
+              status:
+                type: string
+                enum:
+                  - Draft
+                  - Issued
+                  - Partially Received
+                  - Fully Received
+                  - Closed
+                  - Cancelled
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              subtotal:
+                type: number
+                nullable: true
+              taxAmount:
+                type: number
+                nullable: true
+              totalAmount:
+                type: number
+                nullable: true
+              paymentTerms:
+                type: string
+                enum:
+                  - Net 15
+                  - Net 30
+                  - Net 60
+                  - Immediate
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+              costCodeId:
+                type: string
+                format: uuid
+                nullable: true
+    responses:
+      '200':
+        description: PurchaseOrder updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: PurchaseOrder not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /purchaseOrders/{id}
+    operationId: deletePurchaseorder
+    summary: Delete PurchaseOrder
+    description: Deletes a PurchaseOrder by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the PurchaseOrder.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: PurchaseOrder deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: PurchaseOrder not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /goodsReceipts
+    operationId: listGoodsreceipts
+    summary: List goodsReceipts
+    description: Returns a paginated list of goodsReceipts.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: purchaseOrderId
+        in: query
+        required: false
+        description: Filter by PurchaseOrder — returns only records whose purchaseOrderId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: grnNumber
+        in: query
+        required: false
+        description: Filter by grnNumber (exact match)
+        schema:
+          type: string
+      - name: receivedDate
+        in: query
+        required: false
+        description: Filter by receivedDate (exact match)
+        schema:
+          type: string
+      - name: receivedDate_after
+        in: query
+        required: false
+        description: Filter receivedDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: receivedDate_before
+        in: query
+        required: false
+        description: Filter receivedDate less than or equal to the given value
+        schema:
+          type: string
+      - name: receivedBy
+        in: query
+        required: false
+        description: Filter by receivedBy (exact match)
+        schema:
+          type: string
+      - name: deliveryNote
+        in: query
+        required: false
+        description: Filter by deliveryNote (exact match)
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (exact match)
+        schema:
+          type: string
+      - name: inspectionNotes
+        in: query
+        required: false
+        description: Filter by inspectionNotes (exact match)
+        schema:
+          type: string
+      - name: inspectedBy
+        in: query
+        required: false
+        description: Filter by inspectedBy (exact match)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Paginated list of goodsReceipts.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of goodsReceipts.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /goodsReceipts/{id}
+    operationId: getGoodsreceipt
+    summary: Get GoodsReceipt by id
+    description: Returns a single GoodsReceipt by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the GoodsReceipt.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: GoodsReceipt found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: GoodsReceipt not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /goodsReceipts
+    operationId: createGoodsreceipt
+    summary: Create GoodsReceipt
+    description: Creates a new GoodsReceipt.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              grnNumber:
+                type: string
+              purchaseOrderId:
+                type: string
+                format: uuid
+              receivedDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              receivedBy:
+                type: string
+              deliveryNote:
+                type: string
+                nullable: true
+              status:
+                type: string
+                enum:
+                  - Pending Inspection
+                  - Accepted
+                  - Partially Accepted
+                  - Rejected
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              inspectionNotes:
+                type: string
+                nullable: true
+              inspectedBy:
+                type: string
+                nullable: true
+            required:
+              - grnNumber
+              - purchaseOrderId
+              - receivedDate
+              - receivedBy
+              - status
+    responses:
+      '201':
+        description: GoodsReceipt created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /goodsReceipts/{id}
+    operationId: updateGoodsreceipt
+    summary: Update GoodsReceipt
+    description: Replaces an existing GoodsReceipt. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the GoodsReceipt.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              grnNumber:
+                type: string
+              purchaseOrderId:
+                type: string
+                format: uuid
+              receivedDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              receivedBy:
+                type: string
+              deliveryNote:
+                type: string
+                nullable: true
+              status:
+                type: string
+                enum:
+                  - Pending Inspection
+                  - Accepted
+                  - Partially Accepted
+                  - Rejected
+              lineItems:
+                description: Free-form JSON value (object, array, or scalar).
+                nullable: true
+              inspectionNotes:
+                type: string
+                nullable: true
+              inspectedBy:
+                type: string
+                nullable: true
+    responses:
+      '200':
+        description: GoodsReceipt updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: GoodsReceipt not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /goodsReceipts/{id}
+    operationId: deleteGoodsreceipt
+    summary: Delete GoodsReceipt
+    description: Deletes a GoodsReceipt by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the GoodsReceipt.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: GoodsReceipt deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: GoodsReceipt not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /invoices
+    operationId: listInvoices
+    summary: List invoices
+    description: Returns a paginated list of invoices.
+    queryParameters:
+      - name: pageOffset
+        in: query
+        required: false
+        description: Number of records to skip (0-based).
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: pageLimit
+        in: query
+        required: false
+        description: Maximum number of records to return.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 200
+          default: 100
+      - name: vendorId
+        in: query
+        required: false
+        description: Filter by Vendor — returns only records whose vendorId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: purchaseOrderId
+        in: query
+        required: false
+        description: Filter by PurchaseOrder — returns only records whose purchaseOrderId matches.
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: query
+        required: false
+        description: Filter by id (exact match)
+        schema:
+          type: string
+      - name: id_in
+        in: query
+        required: false
+        description: Filter by one or more id values (repeat the parameter)
+      - name: invoiceNumber
+        in: query
+        required: false
+        description: Filter by invoiceNumber (exact match)
+        schema:
+          type: string
+      - name: invoiceDate
+        in: query
+        required: false
+        description: Filter by invoiceDate (exact match)
+        schema:
+          type: string
+      - name: invoiceDate_after
+        in: query
+        required: false
+        description: Filter invoiceDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: invoiceDate_before
+        in: query
+        required: false
+        description: Filter invoiceDate less than or equal to the given value
+        schema:
+          type: string
+      - name: dueDate
+        in: query
+        required: false
+        description: Filter by dueDate (exact match)
+        schema:
+          type: string
+      - name: dueDate_after
+        in: query
+        required: false
+        description: Filter dueDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: dueDate_before
+        in: query
+        required: false
+        description: Filter dueDate less than or equal to the given value
+        schema:
+          type: string
+      - name: subtotal
+        in: query
+        required: false
+        description: Filter by subtotal (exact match)
+        schema:
+          type: number
+      - name: subtotal_gte
+        in: query
+        required: false
+        description: Filter subtotal greater than or equal to the given value
+        schema:
+          type: number
+      - name: subtotal_lte
+        in: query
+        required: false
+        description: Filter subtotal less than or equal to the given value
+        schema:
+          type: number
+      - name: taxAmount
+        in: query
+        required: false
+        description: Filter by taxAmount (exact match)
+        schema:
+          type: number
+      - name: taxAmount_gte
+        in: query
+        required: false
+        description: Filter taxAmount greater than or equal to the given value
+        schema:
+          type: number
+      - name: taxAmount_lte
+        in: query
+        required: false
+        description: Filter taxAmount less than or equal to the given value
+        schema:
+          type: number
+      - name: totalAmount
+        in: query
+        required: false
+        description: Filter by totalAmount (exact match)
+        schema:
+          type: number
+      - name: totalAmount_gte
+        in: query
+        required: false
+        description: Filter totalAmount greater than or equal to the given value
+        schema:
+          type: number
+      - name: totalAmount_lte
+        in: query
+        required: false
+        description: Filter totalAmount less than or equal to the given value
+        schema:
+          type: number
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (exact match)
+        schema:
+          type: string
+      - name: paymentDate
+        in: query
+        required: false
+        description: Filter by paymentDate (exact match)
+        schema:
+          type: string
+      - name: paymentDate_after
+        in: query
+        required: false
+        description: Filter paymentDate greater than or equal to the given value
+        schema:
+          type: string
+      - name: paymentDate_before
+        in: query
+        required: false
+        description: Filter paymentDate less than or equal to the given value
+        schema:
+          type: string
+      - name: paymentReference
+        in: query
+        required: false
+        description: Filter by paymentReference (exact match)
+        schema:
+          type: string
+      - name: notes
+        in: query
+        required: false
+        description: Filter by notes (exact match)
+        schema:
+          type: string
+      - name: approvedBy
+        in: query
+        required: false
+        description: Filter by approvedBy (exact match)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Paginated list of invoices.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  description: Page of invoices.
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    pageOffset:
+                      type: integer
+                      minimum: 0
+                    pageLimit:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - pageOffset
+                    - pageLimit
+              required:
+                - data
+                - pagination
+      '400':
+        description: Invalid query parameters.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: GET
+    path: /invoices/{id}
+    operationId: getInvoice
+    summary: Get Invoice by id
+    description: Returns a single Invoice by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Invoice.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Invoice found.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: POST
+    path: /invoices
+    operationId: createInvoice
+    summary: Create Invoice
+    description: Creates a new Invoice.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              invoiceNumber:
+                type: string
+              vendorId:
+                type: string
+                format: uuid
+              purchaseOrderId:
+                type: string
+                format: uuid
+              invoiceDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              dueDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              subtotal:
+                type: number
+                nullable: true
+              taxAmount:
+                type: number
+                nullable: true
+              totalAmount:
+                type: number
+              status:
+                type: string
+                enum:
+                  - Received
+                  - Under Review
+                  - Approved
+                  - Rejected
+                  - Paid
+              paymentDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+                nullable: true
+              paymentReference:
+                type: string
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+              approvedBy:
+                type: string
+                nullable: true
+            required:
+              - invoiceNumber
+              - vendorId
+              - purchaseOrderId
+              - invoiceDate
+              - dueDate
+              - totalAmount
+              - status
+    responses:
+      '201':
+        description: Invoice created.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: PUT
+    path: /invoices/{id}
+    operationId: updateInvoice
+    summary: Update Invoice
+    description: Replaces an existing Invoice. All fields must be provided.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Invoice.
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              invoiceNumber:
+                type: string
+              vendorId:
+                type: string
+                format: uuid
+              purchaseOrderId:
+                type: string
+                format: uuid
+              invoiceDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              dueDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+              subtotal:
+                type: number
+                nullable: true
+              taxAmount:
+                type: number
+                nullable: true
+              totalAmount:
+                type: number
+              status:
+                type: string
+                enum:
+                  - Received
+                  - Under Review
+                  - Approved
+                  - Rejected
+                  - Paid
+              paymentDate:
+                type: string
+                format: date
+                example: '2026-05-05'
+                nullable: true
+              paymentReference:
+                type: string
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+              approvedBy:
+                type: string
+                nullable: true
+    responses:
+      '200':
+        description: Invoice updated.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: Invalid request body.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                details:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+  - method: DELETE
+    path: /invoices/{id}
+    operationId: deleteInvoice
+    summary: Delete Invoice
+    description: Deletes a Invoice by its id.
+    pathParameters:
+      - name: id
+        in: path
+        required: true
+        description: Unique identifier of the Invoice.
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Invoice deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      '500':
+        description: Internal server error.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+relationships:
+  - from:
+      asset: CostCode
+      field: id
+    to:
+      asset: PurchaseRequisition
+      field: costCodeId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: true
+  - from:
+      asset: Vendor
+      field: id
+    to:
+      asset: PurchaseOrder
+      field: vendorId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: false
+  - from:
+      asset: PurchaseRequisition
+      field: id
+    to:
+      asset: PurchaseOrder
+      field: requisitionId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: true
+  - from:
+      asset: CostCode
+      field: id
+    to:
+      asset: PurchaseOrder
+      field: costCodeId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: true
+  - from:
+      asset: PurchaseOrder
+      field: id
+    to:
+      asset: GoodsReceipt
+      field: purchaseOrderId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: false
+  - from:
+      asset: Vendor
+      field: id
+    to:
+      asset: Invoice
+      field: vendorId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: false
+  - from:
+      asset: PurchaseOrder
+      field: id
+    to:
+      asset: Invoice
+      field: purchaseOrderId
+    type: one-to-many
+    fkType: UUID
+    fkNullable: false
+managedSurface:
+  - asset: Users
+    category: AUTH_SERVICE
+    target: gater
+    basePath: /auth/6a8fe71448d0ed24dea19acd/main
+    baseUrl: https://api.codata.io/auth/6a8fe71448d0ed24dea19acd/main
+    issuesScheme: authBearer
+    endpoints:
+      - method: POST
+        path: /signout
+        audience: end-user
+        requiresAuth: true
+        operationId: signOut
+        summary: Revoke the current refresh token
+        group: Session
+        responses:
+          '204':
+            description: Signed out. No response body.
+          '401':
+            description: Missing or invalid refresh token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: POST
+        path: /refresh
+        audience: end-user
+        requiresAuth: false
+        operationId: refreshToken
+        summary: Exchange a refresh token for a new access token
+        group: Session
+        requestBody:
+          required: true
+          description: Refresh token previously issued by /signin or /signup.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  refreshToken:
+                    type: string
+                required:
+                  - refreshToken
+        responses:
+          '200':
+            description: Token refresh succeeded
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      description: Short-lived JWT bearer token.
+                    refreshToken:
+                      type: string
+                      description: Long-lived token used to mint new access tokens.
+                    expiresIn:
+                      type: integer
+                      description: Access token lifetime in seconds.
+                    tokenType:
+                      type: string
+                      enum:
+                        - Bearer
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Stable user identifier.
+                        email:
+                          type: string
+                          format: email
+                          description: Account-linking key across providers.
+                        providers:
+                          type: object
+                          description: Linked sign-in providers for this user.
+                        lastSignInAt:
+                          type: string
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - providers
+                        - createdAt
+                  required:
+                    - accessToken
+                    - refreshToken
+                    - expiresIn
+                    - tokenType
+          '401':
+            description: Refresh token expired, revoked, or unknown
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security: []
+      - method: GET
+        path: /me
+        audience: end-user
+        requiresAuth: true
+        operationId: getCurrentUser
+        summary: Return the current user
+        group: Session
+        responses:
+          '200':
+            description: Authenticated user record
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Stable user identifier.
+                    email:
+                      type: string
+                      format: email
+                      description: Account-linking key across providers.
+                    providers:
+                      type: object
+                      description: Linked sign-in providers for this user.
+                    lastSignInAt:
+                      type: string
+                      format: date-time
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - providers
+                    - createdAt
+          '401':
+            description: Missing or invalid access token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: POST
+        path: /signup
+        audience: end-user
+        requiresAuth: false
+        operationId: signUpWithEmail
+        summary: Create an account with email + password
+        group: Email & Password
+        requestBody:
+          required: true
+          description: New account credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                  password:
+                    type: string
+                    minLength: 8
+                required:
+                  - email
+                  - password
+        responses:
+          '201':
+            description: Account created. Returns initial token pair and user.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      description: Short-lived JWT bearer token.
+                    refreshToken:
+                      type: string
+                      description: Long-lived token used to mint new access tokens.
+                    expiresIn:
+                      type: integer
+                      description: Access token lifetime in seconds.
+                    tokenType:
+                      type: string
+                      enum:
+                        - Bearer
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Stable user identifier.
+                        email:
+                          type: string
+                          format: email
+                          description: Account-linking key across providers.
+                        providers:
+                          type: object
+                          description: Linked sign-in providers for this user.
+                        lastSignInAt:
+                          type: string
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - providers
+                        - createdAt
+                  required:
+                    - accessToken
+                    - refreshToken
+                    - expiresIn
+                    - tokenType
+          '409':
+            description: An account with this email already exists
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '422':
+            description: Validation failure (weak password, malformed email, …)
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security: []
+      - method: POST
+        path: /signin
+        audience: end-user
+        requiresAuth: false
+        operationId: signInWithEmail
+        summary: Authenticate with email + password
+        group: Email & Password
+        requestBody:
+          required: true
+          description: User credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                  password:
+                    type: string
+                required:
+                  - email
+                  - password
+        responses:
+          '200':
+            description: Sign-in succeeded
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      description: Short-lived JWT bearer token.
+                    refreshToken:
+                      type: string
+                      description: Long-lived token used to mint new access tokens.
+                    expiresIn:
+                      type: integer
+                      description: Access token lifetime in seconds.
+                    tokenType:
+                      type: string
+                      enum:
+                        - Bearer
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Stable user identifier.
+                        email:
+                          type: string
+                          format: email
+                          description: Account-linking key across providers.
+                        providers:
+                          type: object
+                          description: Linked sign-in providers for this user.
+                        lastSignInAt:
+                          type: string
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - providers
+                        - createdAt
+                  required:
+                    - accessToken
+                    - refreshToken
+                    - expiresIn
+                    - tokenType
+          '401':
+            description: Invalid credentials
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '423':
+            description: Account is locked or unverified
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security: []
+      - method: POST
+        path: /password-change
+        audience: end-user
+        requiresAuth: true
+        operationId: changePassword
+        summary: Change the current user’s password
+        group: Email & Password
+        requestBody:
+          required: true
+          description: Current and new password.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentPassword:
+                    type: string
+                  newPassword:
+                    type: string
+                    minLength: 8
+                required:
+                  - currentPassword
+                  - newPassword
+        responses:
+          '204':
+            description: Password changed. Other sessions revoked.
+          '401':
+            description: Missing access token or current password is wrong
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '422':
+            description: New password fails policy requirements
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: POST
+        path: /email-change
+        audience: end-user
+        requiresAuth: true
+        operationId: changeEmail
+        summary: Begin or confirm an email address change
+        group: Email & Password
+        requestBody:
+          required: true
+          description: Initiation or confirmation payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newEmail:
+                    type: string
+                    format: email
+                  confirmationToken:
+                    type: string
+                    description: Token from the confirmation email. Omit on the initiating call.
+        responses:
+          '200':
+            description: Email change confirmed
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Stable user identifier.
+                    email:
+                      type: string
+                      format: email
+                      description: Account-linking key across providers.
+                    providers:
+                      type: object
+                      description: Linked sign-in providers for this user.
+                    lastSignInAt:
+                      type: string
+                      format: date-time
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - providers
+                    - createdAt
+          '202':
+            description: Confirmation email dispatched.
+          '401':
+            description: Missing or invalid access token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '409':
+            description: Target email already in use
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: POST
+        path: /recover
+        audience: end-user
+        requiresAuth: false
+        operationId: recoverPassword
+        summary: Initiate password reset
+        group: Email & Password
+        requestBody:
+          required: true
+          description: Address to send the reset email to.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                required:
+                  - email
+        responses:
+          '202':
+            description: Reset email dispatched (always returns Accepted to avoid leaking account existence).
+          '429':
+            description: Recovery rate limit hit
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security: []
+      - method: POST
+        path: /reset-password
+        audience: end-user
+        requiresAuth: true
+        operationId: completePasswordReset
+        summary: Complete a password reset
+        group: Email & Password
+        requestBody:
+          required: true
+          description: New password to set on the recovered account.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newPassword:
+                    type: string
+                    minLength: 8
+                required:
+                  - newPassword
+        responses:
+          '204':
+            description: Password reset. Other sessions revoked.
+          '401':
+            description: Missing or expired recovery token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '422':
+            description: New password fails policy requirements
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: GET
+        path: /admin/users
+        audience: admin
+        requiresAuth: true
+        operationId: adminListUsers
+        summary: List end-users on this asset
+        group: Admin
+        parameters:
+          - name: limit
+            in: query
+            required: false
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 200
+              default: 50
+            description: Maximum number of items to return.
+          - name: cursor
+            in: query
+            required: false
+            schema:
+              type: string
+            description: Opaque pagination cursor returned by a previous call.
+          - name: q
+            in: query
+            required: false
+            schema:
+              type: string
+            description: Free-text search across email and id.
+        responses:
+          '200':
+            description: Paginated users
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Stable user identifier.
+                          email:
+                            type: string
+                            format: email
+                            description: Account-linking key across providers.
+                          providers:
+                            type: object
+                            description: Linked sign-in providers for this user.
+                          lastSignInAt:
+                            type: string
+                            format: date-time
+                          createdAt:
+                            type: string
+                            format: date-time
+                        required:
+                          - id
+                          - providers
+                          - createdAt
+                    nextCursor:
+                      type: string
+                      nullable: true
+                  required:
+                    - items
+          '401':
+            description: Missing or invalid admin token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: GET
+        path: /admin/users/:uid
+        audience: admin
+        requiresAuth: true
+        operationId: adminGetUser
+        summary: Inspect a single end-user
+        group: Admin
+        parameters:
+          - name: uid
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+            description: Unique identifier of the end-user.
+        responses:
+          '200':
+            description: User record
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Stable user identifier.
+                    email:
+                      type: string
+                      format: email
+                      description: Account-linking key across providers.
+                    providers:
+                      type: object
+                      description: Linked sign-in providers for this user.
+                    lastSignInAt:
+                      type: string
+                      format: date-time
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - providers
+                    - createdAt
+          '404':
+            description: Unknown user id
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: PATCH
+        path: /admin/users/:uid
+        audience: admin
+        requiresAuth: true
+        operationId: adminUpdateUser
+        summary: Update an end-user
+        group: Admin
+        parameters:
+          - name: uid
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+            description: Unique identifier of the end-user.
+        requestBody:
+          required: true
+          description: Partial user patch. Send only the fields you want to change.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: Change the user’s email immediately (no confirmation flow).
+                  password:
+                    type: string
+                    minLength: 8
+                    description: Force-set a new password. Admin-only; bypasses current-password check.
+                  email_confirm:
+                    type: boolean
+                    description: Mark the user’s email as verified without sending an email. Use cautiously.
+                  ban_duration:
+                    type: string
+                    description: 'Go duration string. Examples: `"24h"` (24-hour ban), `"none"` (unban), `"876000h"` (~100 years → effectively force-logout + lock).'
+                  user_metadata:
+                    type: object
+                    description: Free-form metadata the user can write. Merged into existing; pass `null` on a key to delete that key.
+                  app_metadata:
+                    type: object
+                    description: 'Privileged metadata only admins can write. Common pattern: `{ "role": "owner" }`. Surfaces in the JWT under `app_metadata` for authorization checks.'
+                  role:
+                    type: string
+                    description: GoTrue role claim baked into issued JWTs (default `"authenticated"`). Rarely changed; not the same as application role — prefer `app_metadata.role`
+        responses:
+          '200':
+            description: Updated user record
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Stable user identifier.
+                    email:
+                      type: string
+                      format: email
+                      description: Account-linking key across providers.
+                    providers:
+                      type: object
+                      description: Linked sign-in providers for this user.
+                    lastSignInAt:
+                      type: string
+                      format: date-time
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - providers
+                    - createdAt
+          '404':
+            description: Unknown user id
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+          '422':
+            description: Validation failure
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: DELETE
+        path: /admin/users/:uid
+        audience: admin
+        requiresAuth: true
+        operationId: adminDeleteUser
+        summary: Delete an end-user
+        group: Admin
+        parameters:
+          - name: uid
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+            description: Unique identifier of the end-user.
+        responses:
+          '204':
+            description: User deleted.
+          '404':
+            description: Unknown user id
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: POST
+        path: /admin/users/invite
+        audience: admin
+        requiresAuth: true
+        operationId: adminInviteUser
+        summary: Invite a new end-user by email
+        group: Admin
+        requestBody:
+          required: true
+          description: Invitee details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                  metadata:
+                    type: object
+                required:
+                  - email
+        responses:
+          '201':
+            description: Invitation created
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Stable user identifier.
+                    email:
+                      type: string
+                      format: email
+                      description: Account-linking key across providers.
+                    providers:
+                      type: object
+                      description: Linked sign-in providers for this user.
+                    lastSignInAt:
+                      type: string
+                      format: date-time
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - providers
+                    - createdAt
+          '409':
+            description: An account with this email already exists
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                  required:
+                    - error
+        security:
+          - authBearer: []
+      - method: GET
+        path: /admin/logs
+        audience: admin
+        requiresAuth: true
+        operationId: adminGetLogs
+        summary: Read auth audit logs
+        group: Admin
+        parameters:
+          - name: limit
+            in: query
+            required: false
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 200
+              default: 50
+            description: Maximum number of items to return.
+          - name: cursor
+            in: query
+            required: false
+            schema:
+              type: string
+            description: Opaque pagination cursor returned by a previous call.
+          - name: event
+            in: query
+            required: false
+            schema:
+              type: string
+            description: Filter by event type (signin, signup, password-change, …).
+        responses:
+          '200':
+            description: Paginated audit log entries
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          userId:
+                            type: string
+                            format: uuid
+                          event:
+                            type: string
+                            description: e.g. signin, signup, password-change, force-logout.
+                          ip:
+                            type: string
+                          userAgent:
+                            type: string
+                          metadata:
+                            type: object
+                          at:
+                            type: string
+                            format: date-time
+                        required:
+                          - id
+                          - event
+                          - at
+                    nextCursor:
+                      type: string
+                      nullable: true
+                  required:
+                    - items
+        security:
+          - authBearer: []
+security:
+  schemes:
+    workspaceApiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Per-workspace API key minted via workspaces-createApiKey.
+    authBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: End-user JWT minted by the managed auth service.
+resources:
+  - type: AUTH
+  - type: DATABASE
+operations: []
