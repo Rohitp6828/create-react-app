@@ -7,7 +7,7 @@ function App() {
       <header className="civil-construction-procurement">
         //<img src={logo} className="App-logo" alt="logo" />
         <a
-          className="App-link"
+          className="App-link" 
           href="https://civil-construction-procurement.codata-io.app/"
           //target="_blank"
           rel="noopener noreferrer"
