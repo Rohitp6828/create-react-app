@@ -1,4 +1,4 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
         <a
           className="App-link"
           href="https://civil-construction-procurement.codata-io.app/"
-          target="_blank"
+          //target="_blank"
           rel="noopener noreferrer"
         >
           civil-construction-procurement
