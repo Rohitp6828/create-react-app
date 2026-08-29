@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="civil-construction-procurement">
       <header className="civil-construction-procurement">
-        <img src={logo} className="App-logo" alt="logo" />
+        //<img src={logo} className="App-logo" alt="logo" />
         <a
           className="App-link"
           href="https://civil-construction-procurement.codata-io.app/"
