@@ -6,9 +6,6 @@ function App() {
     <div className="civil-construction-procurement">
       <header className="civil-construction-procurement">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
         <a
           className="App-link"
           href="https://civil-construction-procurement.codata-io.app/"
